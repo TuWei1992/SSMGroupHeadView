@@ -76,6 +76,12 @@
     item.direction = ArrowDirectionNone;
     item.tag = self.count;
     [item addTarget:self action:@selector(moveToItem:) forControlEvents:UIControlEventTouchUpInside];
+    if (_textColor) {
+        [item setTitleColor:_textColor forState:UIControlStateNormal];
+    }
+    if (_selectedTextColor) {
+        [item setTitleColor:_selectedTextColor forState:UIControlStateSelected];
+    }
     [self.contentView addSubview:item];
     self.count++;
 }
