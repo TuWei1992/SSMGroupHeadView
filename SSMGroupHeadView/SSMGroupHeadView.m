@@ -87,6 +87,12 @@
     item.direction = direction;
     item.tag = self.count;
     [item addTarget:self action:@selector(moveToItem:) forControlEvents:UIControlEventTouchUpInside];
+    if (_textColor) {
+        [item setTitleColor:_textColor forState:UIControlStateNormal];
+    }
+    if (_selectedTextColor) {
+        [item setTitleColor:_selectedTextColor forState:UIControlStateSelected];
+    }
     [self.contentView addSubview:item];
     self.count++;
 }
@@ -113,10 +119,10 @@
     [UIView animateWithDuration:0.3 animations:^{
         self.lineView.center = CGPointMake(center.x, y);
     } completion:^(BOOL finished) {
-        if ([self.delegate respondsToSelector:@selector(groupHeadViewGroupClicked:preIndex:atIndex:sender:)]) {
-            [self.delegate groupHeadViewGroupClicked:self preIndex:self.selectedIndex atIndex:(int)item.tag sender:item];
-        }
         _selectedIndex = (int)item.tag;
+        if ([self.delegate respondsToSelector:@selector(groupHeadViewGroupClicked:preIndex:atIndex:sender:)]) {
+            [self.delegate groupHeadViewGroupClicked:self preIndex:(_selectedIndex - 1 < 1)?0:(_selectedIndex - 1) atIndex:_selectedIndex sender:item];
+        }
     }];
 }
 
