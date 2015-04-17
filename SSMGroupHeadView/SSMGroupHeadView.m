@@ -8,10 +8,14 @@
 
 #import "SSMGroupHeadView.h"
 
-@interface SSMGroupHeadView ()
+const CGFloat LineMargin = 10.0f;
+const CGFloat DefaultLimitWith = 80.0f;
+
+@interface SSMGroupHeadView ()<UIScrollViewDelegate>
 @property (nonatomic, weak) UIView *lineView;
-@property (nonatomic, weak) UIView *contentView;
+@property (nonatomic, weak) UIScrollView *contentView;
 @property (nonatomic, assign) int count;
+@property (nonatomic, assign) CGFloat allWidth;
 @end
 
 @implementation SSMGroupHeadView
@@ -21,19 +25,28 @@
     self = [super initWithFrame:frame];
     if (self) {
         self.count = 0;
-        UIView *contentView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, frame.size.height - 2)];
+        UIScrollView *contentView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, frame.size.height)];
+        contentView.showsVerticalScrollIndicator = NO;
+        contentView.showsHorizontalScrollIndicator = NO;
+        contentView.pagingEnabled = NO;
+        contentView.delegate = self;
         [self addSubview:contentView];
         self.contentView = contentView;
         self.contentView.tag = 10002;
-        UIView *lineView = [[UIView alloc] initWithFrame:CGRectMake(0, frame.size.height - 2, 60, 2)];
+        UIView *lineView = [[UIView alloc] initWithFrame:CGRectMake(0, frame.size.height - 2, 0, 2)];
         lineView.backgroundColor = [UIColor darkGrayColor];
-        [self addSubview:lineView];
+        [self.contentView addSubview:lineView];
         self.lineView = lineView;
         self.lineView.tag = 1000;
         self.backgroundColor = [UIColor whiteColor];
         self.tag = 1001;
     }
     return self;
+}
+
+- (void)adjustLayout
+{
+    [self adjustSubViewsFrame];
 }
 
 - (void)setSelectedIndex:(int)selectedIndex
@@ -47,9 +60,11 @@
 {
     _textColor = textColor;
     NSArray *subviews = self.contentView.subviews;
-    for (int i = 0; i < self.count; i++) {
+    for (int i = 0; i < subviews.count; i++) {
         SSMGroupItem *item = subviews[i];
-        [item setTitleColor:textColor forState:UIControlStateNormal];
+        if ([item isKindOfClass:[SSMGroupItem class]]) {
+            [item setTitleColor:textColor forState:UIControlStateNormal];
+        }
     }
 }
 
@@ -57,9 +72,11 @@
 {
     _selectedTextColor = selectedTextColor;
     NSArray *subviews = self.contentView.subviews;
-    for (int i = 0; i < self.count; i++) {
+    for (int i = 0; i < subviews.count; i++) {
         SSMGroupItem *item = subviews[i];
-        [item setTitleColor:selectedTextColor forState:UIControlStateSelected];
+        if ([item isKindOfClass:[SSMGroupItem class]]) {
+            [item setTitleColor:selectedTextColor forState:UIControlStateSelected];
+        }
     }
 }
 
@@ -103,10 +120,20 @@
     self.count++;
 }
 
+- (void)setGroupTitle:(NSString *)title atIndex:(int)index
+{
+    SSMGroupItem *item = (SSMGroupItem *)[self.contentView viewWithTag:index];
+    if (item && [item isKindOfClass:[SSMGroupItem class]]) {
+        [item setTitle:title forState:UIControlStateNormal];
+        [item setTitle:title forState:UIControlStateSelected];
+    }
+}
+
 - (void)moveToItem:(SSMGroupItem *)item
 {
-    CGPoint center = item.center;
-    CGFloat y = self.lineView.center.y;
+    if (![item isKindOfClass:[SSMGroupItem class]]) {
+        return;
+    }
     item.selected = YES;
     if (item.direction != ArrowDirectionNone) {
         item.showArrow = YES;
@@ -117,13 +144,15 @@
         }
     }
     for (SSMGroupItem *sitem in self.contentView.subviews) {
-        if (sitem != item) {
+        if (sitem != item && [sitem isKindOfClass:[SSMGroupItem class]]) {
             sitem.selected = NO;
             sitem.showArrow = NO;
         }
     }
+    CGRect lineRect = self.lineView.frame;
+    lineRect.origin.x = item.frame.origin.x + LineMargin;
     [UIView animateWithDuration:0.3 animations:^{
-        self.lineView.center = CGPointMake(center.x, y);
+        self.lineView.frame = lineRect;
     } completion:^(BOOL finished) {
         _selectedIndex = (int)item.tag;
         if ([self.delegate respondsToSelector:@selector(groupHeadViewGroupClicked:preIndex:atIndex:sender:)]) {
@@ -135,15 +164,33 @@
 - (void)layoutSubviews
 {
     [super layoutSubviews];
-    NSArray *subviews = self.contentView.subviews;
-    int count = (int)subviews.count;
-    CGFloat width = self.contentView.frame.size.width / count;
-    CGFloat height = self.contentView.frame.size.height;
-    self.lineView.center = CGPointMake(width / 2, self.lineView.center.y);
-    for (int i = 0; i < count; i++) {
-        SSMGroupItem *item = subviews[i];
-        item.frame = CGRectMake(i * width, 0, width, height);
+    [self adjustSubViewsFrame];
+}
+
+- (void)adjustSubViewsFrame
+{
+    NSMutableArray *subviews = [NSMutableArray array];
+    for (UIView *view in self.contentView.subviews) {
+        if ([view isKindOfClass:[SSMGroupItem class]]) {
+            [subviews addObject:view];
+        }
     }
+    self.allWidth = self.contentView.frame.size.width / self.count;
+    CGFloat height = self.contentView.frame.size.height;
+    if (self.allWidth < DefaultLimitWith) {
+        self.allWidth = DefaultLimitWith;
+    }
+    if (_selectedIndex == 0) {
+        CGRect lineRect = self.lineView.frame;
+        lineRect.size.width = self.allWidth - LineMargin * 2;
+        lineRect.origin.x = LineMargin;
+        self.lineView.frame = lineRect;
+    }
+    for (int i = 0; i < self.count; i++) {
+        SSMGroupItem *item = subviews[i];
+        item.frame = CGRectMake(i * self.allWidth, 0, self.allWidth, height);
+    }
+    self.contentView.contentSize = CGSizeMake(self.allWidth * self.count, 0);
 }
 
 - (void)drawRect:(CGRect)rect
