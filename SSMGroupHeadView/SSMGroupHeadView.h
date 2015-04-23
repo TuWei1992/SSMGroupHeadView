@@ -47,4 +47,15 @@
  *  @param direction 箭头指示器方向
  */
 - (void)insertGroupWithTitle:(NSString *)title direction:(ArrowDirection)direction;
+/**
+ *  设置组标题
+ *
+ *  @param title 标题
+ *  @param index 组索引
+ */
+- (void)setGroupTitle:(NSString *)title atIndex:(int)index;
+/**
+ *  重新调整布局
+ */
+- (void)adjustLayout;
 @end
