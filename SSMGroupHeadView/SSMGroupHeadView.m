@@ -20,28 +20,45 @@ const CGFloat DefaultLimitWith = 80.0f;
 
 @implementation SSMGroupHeadView
 
+- (id)initWithCoder:(NSCoder *)aDecoder
+{
+    if (self = [super initWithCoder:aDecoder]) {
+        [self initLayout];
+        self.contentView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+        self.lineView.frame = CGRectMake(0, self.frame.size.height - 2, 0, 2);
+    }
+    return self;
+}
+
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
     if (self) {
-        self.count = 0;
-        UIScrollView *contentView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, frame.size.height)];
-        contentView.showsVerticalScrollIndicator = NO;
-        contentView.showsHorizontalScrollIndicator = NO;
-        contentView.pagingEnabled = NO;
-        contentView.delegate = self;
-        [self addSubview:contentView];
-        self.contentView = contentView;
-        self.contentView.tag = 10002;
-        UIView *lineView = [[UIView alloc] initWithFrame:CGRectMake(0, frame.size.height - 2, 0, 2)];
-        lineView.backgroundColor = [UIColor darkGrayColor];
-        [self.contentView addSubview:lineView];
-        self.lineView = lineView;
-        self.lineView.tag = 1000;
-        self.backgroundColor = [UIColor whiteColor];
-        self.tag = 1001;
+        [self initLayout];
+        self.contentView.frame = CGRectMake(0, 0, frame.size.width, frame.size.height);
+        self.lineView.frame = CGRectMake(0, frame.size.height - 2, 0, 2);
     }
     return self;
+}
+
+- (void)initLayout
+{
+    self.count = 0;
+    UIScrollView *contentView = [[UIScrollView alloc] init];
+    contentView.showsVerticalScrollIndicator = NO;
+    contentView.showsHorizontalScrollIndicator = NO;
+    contentView.pagingEnabled = NO;
+    contentView.delegate = self;
+    [self addSubview:contentView];
+    self.contentView = contentView;
+    self.contentView.tag = 10002;
+    UIView *lineView = [[UIView alloc] init];
+    lineView.backgroundColor = [UIColor darkGrayColor];
+    [self.contentView addSubview:lineView];
+    self.lineView = lineView;
+    self.lineView.tag = 1000;
+    self.backgroundColor = [UIColor whiteColor];
+    self.tag = 1001;
 }
 
 - (void)adjustLayout
