@@ -24,8 +24,6 @@ const CGFloat DefaultLimitWith = 80.0f;
 {
     if (self = [super initWithCoder:aDecoder]) {
         [self initLayout];
-        self.contentView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
-        self.lineView.frame = CGRectMake(0, self.frame.size.height - 2, 0, 2);
     }
     return self;
 }
@@ -35,8 +33,6 @@ const CGFloat DefaultLimitWith = 80.0f;
     self = [super initWithFrame:frame];
     if (self) {
         [self initLayout];
-        self.contentView.frame = CGRectMake(0, 0, frame.size.width, frame.size.height);
-        self.lineView.frame = CGRectMake(0, frame.size.height - 2, 0, 2);
     }
     return self;
 }
@@ -181,6 +177,8 @@ const CGFloat DefaultLimitWith = 80.0f;
 - (void)layoutSubviews
 {
     [super layoutSubviews];
+    self.contentView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+    self.lineView.frame = CGRectMake(0, self.frame.size.height - 2, 0, 2);
     [self adjustSubViewsFrame];
 }
 
